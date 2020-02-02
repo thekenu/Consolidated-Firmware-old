@@ -56,6 +56,8 @@ CAN_HandleTypeDef hcan;
 
 IWDG_HandleTypeDef hiwdg;
 
+TIM_HandleTypeDef htim15;
+
 osThreadId          Task1HzHandle;
 uint32_t            Task1HzBuffer[128];
 osStaticThreadDef_t Task1HzControlBlock;
@@ -78,6 +80,7 @@ static void MX_GPIO_Init(void);
 static void MX_CAN_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_IWDG_Init(void);
+static void MX_TIM15_Init(void);
 void        RunTask1Hz(void const *argument);
 void        RunTask1kHz(void const *argument);
 void        RunTaskCanRx(void const *argument);
@@ -128,6 +131,7 @@ int main(void)
     MX_CAN_Init();
     MX_ADC1_Init();
     MX_IWDG_Init();
+    MX_TIM15_Init();
     /* USER CODE BEGIN 2 */
 
     /* USER CODE END 2 */
@@ -236,8 +240,10 @@ void SystemClock_Config(void)
     {
         Error_Handler();
     }
-    PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_ADC1;
-    PeriphClkInit.Adc1ClockSelection   = RCC_ADC1PLLCLK_DIV1;
+    PeriphClkInit.PeriphClockSelection =
+        RCC_PERIPHCLK_TIM15 | RCC_PERIPHCLK_ADC1;
+    PeriphClkInit.Tim15ClockSelection = RCC_TIM15CLK_HCLK;
+    PeriphClkInit.Adc1ClockSelection  = RCC_ADC1PLLCLK_DIV1;
 
     if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
     {
@@ -362,6 +368,81 @@ static void MX_IWDG_Init(void)
 }
 
 /**
+ * @brief TIM15 Initialization Function
+ * @param None
+ * @retval None
+ */
+static void MX_TIM15_Init(void)
+{
+    /* USER CODE BEGIN TIM15_Init 0 */
+
+    /* USER CODE END TIM15_Init 0 */
+
+    TIM_ClockConfigTypeDef  sClockSourceConfig = { 0 };
+    TIM_SlaveConfigTypeDef  sSlaveConfig       = { 0 };
+    TIM_IC_InitTypeDef      sConfigIC          = { 0 };
+    TIM_MasterConfigTypeDef sMasterConfig      = { 0 };
+
+    /* USER CODE BEGIN TIM15_Init 1 */
+
+    /* USER CODE END TIM15_Init 1 */
+    htim15.Instance               = TIM15;
+    htim15.Init.Prescaler         = 0;
+    htim15.Init.CounterMode       = TIM_COUNTERMODE_UP;
+    htim15.Init.Period            = 0;
+    htim15.Init.ClockDivision     = TIM_CLOCKDIVISION_DIV1;
+    htim15.Init.RepetitionCounter = 0;
+    htim15.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+    if (HAL_TIM_Base_Init(&htim15) != HAL_OK)
+    {
+        Error_Handler();
+    }
+    sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+    if (HAL_TIM_ConfigClockSource(&htim15, &sClockSourceConfig) != HAL_OK)
+    {
+        Error_Handler();
+    }
+    if (HAL_TIM_IC_Init(&htim15) != HAL_OK)
+    {
+        Error_Handler();
+    }
+    sSlaveConfig.SlaveMode        = TIM_SLAVEMODE_RESET;
+    sSlaveConfig.InputTrigger     = TIM_TS_TI1FP1;
+    sSlaveConfig.TriggerPolarity  = TIM_INPUTCHANNELPOLARITY_RISING;
+    sSlaveConfig.TriggerPrescaler = TIM_ICPSC_DIV1;
+    sSlaveConfig.TriggerFilter    = 0;
+    if (HAL_TIM_SlaveConfigSynchronization(&htim15, &sSlaveConfig) != HAL_OK)
+    {
+        Error_Handler();
+    }
+    sConfigIC.ICPolarity  = TIM_INPUTCHANNELPOLARITY_RISING;
+    sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
+    sConfigIC.ICPrescaler = TIM_ICPSC_DIV1;
+    sConfigIC.ICFilter    = 0;
+    if (HAL_TIM_IC_ConfigChannel(&htim15, &sConfigIC, TIM_CHANNEL_1) != HAL_OK)
+    {
+        Error_Handler();
+    }
+    sConfigIC.ICPolarity  = TIM_INPUTCHANNELPOLARITY_FALLING;
+    sConfigIC.ICSelection = TIM_ICSELECTION_INDIRECTTI;
+    if (HAL_TIM_IC_ConfigChannel(&htim15, &sConfigIC, TIM_CHANNEL_2) != HAL_OK)
+    {
+        Error_Handler();
+    }
+    sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+    sMasterConfig.MasterSlaveMode     = TIM_MASTERSLAVEMODE_DISABLE;
+    if (HAL_TIMEx_MasterConfigSynchronization(&htim15, &sMasterConfig) !=
+        HAL_OK)
+    {
+        Error_Handler();
+    }
+    /* USER CODE BEGIN TIM15_Init 2 */
+    HAL_TIM_IC_Start_IT(&htim15, TIM_CHANNEL_1);
+    HAL_TIM_IC_Start_IT(&htim15, TIM_CHANNEL_2);
+    /* USER CODE END TIM15_Init 2 */
+}
+
+/**
  * @brief GPIO Initialization Function
  * @param None
  * @retval None
@@ -386,12 +467,12 @@ static void MX_GPIO_Init(void)
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-    /*Configure GPIO pins : PA0 PA1 PA2 PA4
-                             PA5 PA6 PA7 PA11
-                             PA12 PA15 */
-    GPIO_InitStruct.Pin = GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_4 |
-                          GPIO_PIN_5 | GPIO_PIN_6 | GPIO_PIN_7 | GPIO_PIN_11 |
-                          GPIO_PIN_12 | GPIO_PIN_15;
+    /*Configure GPIO pins : PA0 PA1 PA4 PA5
+                             PA6 PA7 PA11 PA12
+                             PA15 */
+    GPIO_InitStruct.Pin = GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_4 | GPIO_PIN_5 |
+                          GPIO_PIN_6 | GPIO_PIN_7 | GPIO_PIN_11 | GPIO_PIN_12 |
+                          GPIO_PIN_15;
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);

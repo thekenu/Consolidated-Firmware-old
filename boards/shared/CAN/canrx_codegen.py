@@ -116,6 +116,9 @@ class CanRxFileGenerator(CanFileGenerator):
             '''\
     shared_assert({initialized_flag} == true);
     
+    // TODO: Remove this
+    Test_CanCallback(std_id, data);
+    
     switch (std_id)
     {{
 {cases}
@@ -160,7 +163,8 @@ class CanRxHeaderFileGenerator(CanRxFileGenerator):
 
     def __generateHeaderIncludes(self):
         header_names = ['<stdint.h>',
-                        '<stdbool.h>']
+                        '<stdbool.h>',
+                        '"Test.h"']
         return '\n'.join(
             [HeaderInclude(name).get_include() for name in header_names])
 

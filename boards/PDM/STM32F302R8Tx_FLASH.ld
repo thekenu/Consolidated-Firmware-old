@@ -76,6 +76,12 @@ SECTIONS
     . = ALIGN(4);
   } >FLASH
 
+  .lf.funcs :
+  {
+    . = ALIGN(4);
+    *(.lf.funcs)
+  } >FLASH
+
   /* The program code and other data goes into FLASH */
   .text :
   {
@@ -92,6 +98,7 @@ SECTIONS
     . = ALIGN(4);
     _etext = .;        /* define a global symbols at end of code */
   } >FLASH
+
 
   /* Constant data goes into FLASH */
   .rodata :

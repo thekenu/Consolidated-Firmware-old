@@ -47,7 +47,7 @@ def generate_cantools_c_code(database, database_name, source_dir, header_dir):
         filename_c,
         "",
         floating_point_numbers=True,
-        bit_fields=True
+        bit_fields=False
     )
     # Remove timestamps from generated source code because
     # the timestamps would pollute git diff

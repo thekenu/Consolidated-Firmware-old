@@ -82,11 +82,21 @@ class CanTxFileGenerator(CanFileGenerator):
             '''\
     shared_assert({initialized_flag} == true);
     
-    xSemaphoreTake({periodic_table_name}.{msg_name}.xSemaphore, portMAX_DELAY);
+    {periodic_table_name}.{msg_name}.payload.{signal_name} = value;'''.format(
+                initialized_flag=self._cantx_initialized.get_name(),
+                msg_name=signal.msg_name_snakecase,
+                periodic_table_name=self._periodicTxTableName,
+                signal_name=signal.snakecase_name)
+        ) for signal in self._periodic_cantx_signals)
 
-    {periodic_table_name}.{msg_name}.payload.{signal_name} = value;
+        self._PeriodicTxSignalPointerGetters = list(Function(
+            '%s* %s_GetPeriodicSignalPointer_%s(void)' % (
+                signal.type_name, function_prefix, signal.uppercase_name),
+            '',
+            '''\
+    shared_assert({initialized_flag} == true);
 
-    xSemaphoreGive({periodic_table_name}.{msg_name}.xSemaphore);'''.format(
+    return &{periodic_table_name}.{msg_name}.payload.{signal_name};'''.format(
                 initialized_flag=self._cantx_initialized.get_name(),
                 msg_name=signal.msg_name_snakecase,
                 periodic_table_name=self._periodicTxTableName,
@@ -156,6 +166,8 @@ class CanTxHeaderFileGenerator(CanTxFileGenerator):
         function_declarations.append('/** @brief Signal getters for periodic CAN TX messages */\n' + '\n'.join([func.declaration for func in self._PeriodicTxSignalSetters]))
         function_declarations.append('/** @brief "Normal" enqueue functions for non-periodic CAN TX messages */\n' + '\n'.join([func.declaration for func in self._EnqueueNonPeriodicMsgs]))
         function_declarations.append('/** @brief "Force" enqueue functions for non-periodic CAN TX messages*/\n' + '\n'.join([func.declaration for func in self._ForceEnqueueNonPeriodicMsgs]))
+
+        function_declarations.append('/** @brief Signal getters for periodic CAN TX messages */\n' + '\n'.join([func.declaration for func in self._PeriodicTxSignalPointerGetters]))
         return '\n\n'.join(function_declarations)
 
 class CanTxSourceFileGenerator(CanTxFileGenerator):
@@ -236,5 +248,6 @@ class CanTxSourceFileGenerator(CanTxFileGenerator):
         function_defs.extend(func.definition for func in self._PeriodicTxSignalSetters)
         function_defs.extend(func.definition for func in self._EnqueueNonPeriodicMsgs)
         function_defs.extend(func.definition for func in self._ForceEnqueueNonPeriodicMsgs)
+        function_defs.extend(func.definition for func in self._PeriodicTxSignalPointerGetters)
 
         return '\n\n'.join(function_defs)
