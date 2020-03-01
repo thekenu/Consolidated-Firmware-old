@@ -11,6 +11,9 @@ set(CMAKE_OBJCOPY arm-none-eabi-objcopy)
 set(CMAKE_OBJDUMP arm-none-eabi-objdump)
 set(SIZE arm-none-eabi-size)
 
+# CMake complains about not able to compile simple test program without this
+SET(CMAKE_CXX_COMPILER_WORKS 1)
+
 SET(LINKER_SCRIPT ${CMAKE_SOURCE_DIR}/STM32F302C8Tx_FLASH.ld)
 
 SET(COMMON_FLAGS
@@ -21,3 +24,11 @@ SET(FPU_FLAGS "-mfloat-abi=hard -mfpu=fpv4-sp-d16")
 
 SET(CMAKE_C_FLAGS_INIT ${COMMON_FLAGS})
 SET(CMAKE_EXE_LINKER_FLAGS_INIT "-Wl,-gc-sections,--print-memory-usage -T ${LINKER_SCRIPT}")
+
+# Hardware floating point
+add_definitions(-DARM_MATH_CM4 -DARM_MATH_MATRIX_CHECK -DARM_MATH_ROUNDING)
+
+# Enable assert_param macro in the HAL driver
+add_definitions(-DUSE_FULL_ASSERT=1)
+
+add_definitions(-D__weak=__attribute__\(\(weak\)\) -D__packed=__attribute__\(\(__packed__\)\) -DUSE_HAL_DRIVER -DSTM32F302x8)
