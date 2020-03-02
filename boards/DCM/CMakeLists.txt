@@ -13,9 +13,6 @@ set(CMAKE_OBJCOPY arm-none-eabi-objcopy)
 set(CMAKE_OBJDUMP arm-none-eabi-objdump)
 set(SIZE arm-none-eabi-size)
 
-#SET(CMAKE_CXX_COMPILER_WORKS 1)
-#SET(CMAKE_CXX_COMPILER /usr/bin/g++)
-
 SET(LINKER_SCRIPT ${CMAKE_SOURCE_DIR}/STM32F302C8Tx_FLASH.ld)
 
 # Hardware floating point

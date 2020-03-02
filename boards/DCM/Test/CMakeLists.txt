@@ -9,11 +9,6 @@ SET(CMAKE_C_COMPILER arm-none-eabi-gcc)
 SET(CMAKE_CXX_COMPILER_WORKS 1)
 SET(CMAKE_CXX_COMPILER g++)
 
-
-#SET(CMAKE_CXX_COMPILER /usr/bin/g++)
-#set(CMAKE_ASM_COMPILER g++)
-
-
 project(PDM CXX)
 
 # Download and unpack googletest at configure time
@@ -40,13 +35,6 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
         ${CMAKE_CURRENT_BINARY_DIR}/googletest-build
         EXCLUDE_FROM_ALL)
-
-## The gtest/gtest_main targets carry header search path
-## dependencies automatically when using CMake 2.8.11 or
-## later. Otherwise we have to add them here ourselves.
-#if (CMAKE_VERSION VERSION_LESS 2.8.11)
-    include_directories("${gtest_SOURCE_DIR}/include")
-#endif()
 
 # Now simply link against gtest or gtest_main as needed. Eg
 add_executable(example main.cpp)
