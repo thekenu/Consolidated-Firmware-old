@@ -346,6 +346,8 @@ function(create_arm_binary_or_tests_for_board
     git_hash_code_generation(${GIT_HASH_HEADER})
 
     if ("${PLATFORM}" STREQUAL "x86")
+        # include(${CMAKE_CURRENT_SOURCE_DIR}/Test/CMakeLists.txt)
+        # build_all_tests("${APP_SRCS}" "${ARM_BINARY_INCLUDE_DIRS}")
         create_state_machine_tests()
     elseif("${PLATFORM}" STREQUAL "arm")
         cube_mx_code_generation(
@@ -365,7 +367,61 @@ function(create_arm_binary_or_tests_for_board
     endif()
 endfunction()
 
+# Create a GoogleTest binary
+function(add_gtest_binary
+            TARGET_NAME
+            NAME
+            MAIN_SRC
+            INCLUDE_DIRS
+            ${ARGN}
+            )
+#    message(FATAL_ERROR ${ARGN})
+    add_executable(${TARGET_NAME}
+            ${ARGN}
+            ${SHARED_APP_SRCS}
+            ${MAIN_SRC})
+    target_link_libraries(${TARGET_NAME} gtest_main)
+    target_include_directories(${TARGET_NAME}
+            PRIVATE
+                ${INCLUDE_DIRS}
+                ${SHARED_INCLUDE_DIRS}
+            )
+    add_test(NAME ${NAME} COMMAND ${TARGET_NAME})
+endfunction()
+
+function(download_and_unpack_google_test CMakeLists.txt.in)
+    # Download and unpack googletest at configure time
+    configure_file(${CMakeLists.txt.in} googletest-download/CMakeLists.txt)
+    execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
+            RESULT_VARIABLE result
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/googletest-download )
+    if(result)
+        message(FATAL_ERROR "CMake step for googletest failed: ${result}")
+    endif()
+    execute_process(COMMAND ${CMAKE_COMMAND} --build .
+            RESULT_VARIABLE result
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/googletest-download )
+    if(result)
+        message(FATAL_ERROR "Build step for googletest failed: ${result}")
+    endif()
+
+    # Prevent overriding the parent project's compiler/linker
+    # settings on Windows
+    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+
+    # Add googletest directly to our build. This defines
+    # the gtest and gtest_main targets.
+    add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
+            ${CMAKE_CURRENT_BINARY_DIR}/googletest-build
+            EXCLUDE_FROM_ALL)
+endfunction()
+
+if ("${PLATFORM}" STREQUAL "x86")
+    download_and_unpack_google_test(
+        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt.in)
+endif()
+
 add_subdirectory(DCM)
-add_subdirectory(PDM)
-add_subdirectory(FSM)
-add_subdirectory(BMS)
+# add_subdirectory(PDM)
+# add_subdirectory(FSM)
+# add_subdirectory(BMS)
