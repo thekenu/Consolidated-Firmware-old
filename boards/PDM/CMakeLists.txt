@@ -27,6 +27,8 @@ file(GLOB_RECURSE STM32CUBEMX_DRIVER_SRCS
         )
 set(IOC_FILE "${CMAKE_CURRENT_SOURCE_DIR}/PDM.ioc")
 
+add_subdirectory(Test)
+
 create_arm_binary_or_tests_for_board(
     "PDM"
     "${IOC_FILE}"
@@ -38,4 +40,6 @@ create_arm_binary_or_tests_for_board(
     "${ARM_LINKER_SCRIPT}"
     "${STM32CUBEMX_DRIVER_SRCS}"
     "${STM32CUBEMX_DRIVER_INCLUDE_DIRS}"
+    "${GOOGLETEST_TEST_SRCS}"
+    "${GOOGLETEST_MAIN_SRC}"
 )

@@ -344,7 +344,6 @@ function(create_arm_binary_or_tests_for_board
     git_hash_code_generation(${GIT_HASH_HEADER})
 
     if ("${PLATFORM}" STREQUAL "x86")
-        download_and_unpack_google_test(${CMAKE_SOURCE_DIR}/CMakeLists.txt.in)
         compile_googletest_executables(
                 "${BOARD_NAME}"
                 "${GOOGLETEST_TEST_SRCS}"
@@ -424,7 +423,11 @@ function(download_and_unpack_google_test GOOGLETEST_DOWNLOAD_SCRIPT)
             EXCLUDE_FROM_ALL)
 endfunction()
 
+if ("${PLATFORM}" STREQUAL "x86")
+    download_and_unpack_google_test(${CMAKE_SOURCE_DIR}/CMakeLists.txt.in)
+endif()
+
 add_subdirectory(DCM)
-# add_subdirectory(PDM)
-# add_subdirectory(FSM)
-# add_subdirectory(BMS)
+add_subdirectory(PDM)
+add_subdirectory(FSM)
+add_subdirectory(BMS)
