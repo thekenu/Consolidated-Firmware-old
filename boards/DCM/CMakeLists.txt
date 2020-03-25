@@ -1,9 +1,5 @@
-file(GLOB_RECURSE ARM_BINARY_APP_SRCS
-     "Src/App/*.*"
-     )
-set(ARM_BINARY_APP_INCLUDE_DIRS
-    "Inc/App"
-    )
+file(GLOB_RECURSE ARM_BINARY_APP_SRCS "Src/App/*.*")
+set(ARM_BINARY_APP_INCLUDE_DIRS "Inc/App")
 file(GLOB ARM_BINARY_IO_SRCS
      "Src/*.*"
      "Src/Io/*.*"
