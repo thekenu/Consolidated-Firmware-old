@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 3.11)
 if("${PLATFORM}" STREQUAL "x86")
     # We assume this cmake is running on a x86 platform, so the 
     # default compiler settings should be fine
-    PROJECT(FORMULA_ELECTRIC_FIRMWARE C CXX)
+    project(FORMULA_ELECTRIC_FIRMWARE C CXX)
 elseif("${PLATFORM}" STREQUAL "arm")
     set(CMAKE_C_COMPILER_WORKS 1)
     set(TOOLCHAIN_PREFIX arm-none-eabi-)
@@ -16,7 +16,7 @@ elseif("${PLATFORM}" STREQUAL "arm")
     set(CMAKE_OBJDUMP ${TOOLCHAIN_PREFIX}objdump)
     set(SIZE ${TOOLCHAIN_PREFIX}size)
 
-    PROJECT(FORMULA_ELECTRIC_FIRMWARE C ASM)
+    project(FORMULA_ELECTRIC_FIRMWARE C ASM)
 else()
     message(FATAL_ERROR
         "ERROR: Please set the PLATFORM variable to 'x86' or 'arm'.")
@@ -96,12 +96,6 @@ function(git_hash_code_generation GIT_HASH_HEADER)
         COMMAND
             echo "#define GIT_HASH $(git rev-parse head)" > ${GIT_HASH_HEADER}
         )
-endfunction()
-
-# Creates the unit tests. This should only be called if compiling for x86
-# TODO: full comment here when this is implemented
-function(create_state_machine_tests)
-    # TODO
 endfunction()
 
 # Create the Arm binary executable that can be flashed to a board
@@ -351,27 +345,13 @@ function(create_arm_binary_or_tests_for_board
 
     if ("${PLATFORM}" STREQUAL "x86")
         download_and_unpack_google_test(${CMAKE_SOURCE_DIR}/CMakeLists.txt.in)
-        foreach(GOOGLETEST_TEST_SRC ${GOOGLETEST_TEST_SRCS})
-            set(GOOGLETEST_TEST_BASENAME)
-            get_filename_component(GOOGLETEST_TEST_BASENAME ${GOOGLETEST_TEST_SRC} NAME_WE)
-            message(FATAL_ERROR ${SHARED_APP_INCLUDE_DIRS})
-            add_executable("${GOOGLETEST_TEST_BASENAME}_tests"
-                    "${ARM_BINARY_APP_SRCS}"
-                    "${SHARED_APP_SRCS}"
-                    "${GOOGLETEST_TEST_SRC}"
-                    "${GOOGLETEST_MAIN_SRC}"
-                    )
-            target_include_directories("${GOOGLETEST_TEST_BASENAME}_tests"
-                    PRIVATE
-                        ${ARM_BINARY_APP_INCLUDE_DIRS}
-                        ${SHARED_APP_INCLUDE_DIRS}
-                    )
-            target_link_libraries("${GOOGLETEST_TEST_BASENAME}_tests" gtest_main)
-            add_test(NAME ${GOOGLETEST_TEST_BASENAME}
-                     COMMAND "${GOOGLETEST_TEST_BASENAME}_tests")
-        endforeach()
-        # build_all_tests("${APP_SRCS}" "${ARM_BINARY_INCLUDE_DIRS}")
-        create_state_machine_tests()
+        compile_googletest_executables(
+                "${BOARD_NAME}"
+                "${GOOGLETEST_TEST_SRCS}"
+                "${GOOGLETEST_MAIN_SRC}"
+                "${ARM_BINARY_APP_SRCS}"
+                "${ARM_BINARY_APP_INCLUDE_DIRS}"
+        )
     elseif("${PLATFORM}" STREQUAL "arm")
         cube_mx_code_generation(
             "${BOARD_NAME}"
@@ -390,25 +370,31 @@ function(create_arm_binary_or_tests_for_board
     endif()
 endfunction()
 
-# Create a GoogleTest binary
-function(add_gtest_binary
-            TARGET_NAME
-            NAME
-            MAIN_SRC
-            INCLUDE_DIRS
-            ${ARGN}
+function(compile_googletest_executables
+            BOARD_NAME
+            TEST_SRCS
+            TEST_MAIN_SRC
+            ARM_BINARY_APP_SRCS
+            ARM_BINARY_APP_INCLUDE_DIRS
             )
-    add_executable(${TARGET_NAME}
-            ${ARGN}
-            ${SHARED_APP_SRCS}
-            ${MAIN_SRC})
-    target_link_libraries(${TARGET_NAME} gtest_main)
-    target_include_directories(${TARGET_NAME}
-            PRIVATE
-                ${INCLUDE_DIRS}
-                ${SHARED_INCLUDE_DIRS}
-            )
-    add_test(NAME ${NAME} COMMAND ${TARGET_NAME})
+    foreach(TEST_SRC ${TEST_SRCS})
+        get_filename_component(TEST_BASENAME ${TEST_SRC} NAME_WE)
+        set(TEST_EXECUTABLE_NAME "${BOARD_NAME}_${TEST_BASENAME}")
+        add_executable(${TEST_EXECUTABLE_NAME}
+                ${ARM_BINARY_APP_SRCS}
+                ${SHARED_APP_SRCS}
+                ${TEST_SRC}
+                ${TEST_MAIN_SRC}
+                )
+        target_include_directories(${TEST_EXECUTABLE_NAME}
+                PRIVATE
+                    ${ARM_BINARY_APP_INCLUDE_DIRS}
+                    ${SHARED_APP_INCLUDE_DIRS}
+                )
+        target_link_libraries(${TEST_EXECUTABLE_NAME} gtest_main)
+        add_test(NAME ${TEST_BASENAME}
+                 COMMAND ${TEST_EXECUTABLE_NAME})
+    endforeach()
 endfunction()
 
 function(download_and_unpack_google_test GOOGLETEST_DOWNLOAD_SCRIPT)
