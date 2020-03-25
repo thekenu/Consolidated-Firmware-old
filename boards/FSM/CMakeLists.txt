@@ -1,9 +1,9 @@
 file(GLOB_RECURSE ARM_BINARY_APP_SRCS "Src/App/*.*")
 set(ARM_BINARY_APP_INCLUDE_DIRS "Inc/App")
 file(GLOB ARM_BINARY_IO_SRCS
-        "Src/*.*"
-        "Src/Io/*.*"
-        "startup/*.*"
+        "Src/*.c"
+        "Src/Io/*.c"
+        "startup/*.s"
         )
 set(ARM_BINARY_IO_INCLUDE_DIRS
         "Inc"
@@ -22,8 +22,8 @@ set(STM32CUBEMX_DRIVER_INCLUDE_DIRS
         "Drivers/CMSIS/Include"
         )
 file(GLOB_RECURSE STM32CUBEMX_DRIVER_SRCS
-        "Middlewares/*.*"
-        "Drivers/*.*"
+        "Middlewares/*.c"
+        "Drivers/*.c"
         )
 set(IOC_FILE "${CMAKE_CURRENT_SOURCE_DIR}/FSM.ioc")
 
