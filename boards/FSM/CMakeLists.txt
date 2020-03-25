@@ -6,8 +6,8 @@ file(GLOB ARM_BINARY_IO_SRCS
         "startup/*.*"
         )
 set(ARM_BINARY_IO_INCLUDE_DIRS
-        "Inc/Io"
         "Inc"
+        "Inc/Io"
         )
 set(ARM_BINARY_IO_SYSCALLS_SRC "Src/syscalls.c")
 set(ARM_LINKER_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/STM32F302C8Tx_FLASH.ld")
@@ -28,14 +28,14 @@ file(GLOB_RECURSE STM32CUBEMX_DRIVER_SRCS
 set(IOC_FILE "${CMAKE_CURRENT_SOURCE_DIR}/FSM.ioc")
 
 create_arm_binary_or_tests_for_board(
-        "FSM"
-        "${IOC_FILE}"
-        "${ARM_BINARY_APP_SRCS}"
-        "${ARM_BINARY_APP_INCLUDE_DIRS}"
-        "${ARM_BINARY_IO_SRCS}"
-        "${ARM_BINARY_IO_INCLUDE_DIRS}"
-        "${ARM_BINARY_IO_SYSCALLS_SRC}"
-        "${ARM_LINKER_SCRIPT}"
-        "${STM32CUBEMX_DRIVER_SRCS}"
-        "${STM32CUBEMX_DRIVER_INCLUDE_DIRS}"
+    "FSM"
+    "${IOC_FILE}"
+    "${ARM_BINARY_APP_SRCS}"
+    "${ARM_BINARY_APP_INCLUDE_DIRS}"
+    "${ARM_BINARY_IO_SRCS}"
+    "${ARM_BINARY_IO_INCLUDE_DIRS}"
+    "${ARM_BINARY_IO_SYSCALLS_SRC}"
+    "${ARM_LINKER_SCRIPT}"
+    "${STM32CUBEMX_DRIVER_SRCS}"
+    "${STM32CUBEMX_DRIVER_INCLUDE_DIRS}"
 )
